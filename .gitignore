@@ -1,0 +1,9 @@
+node_modules/
+build/app/
+build/tmp/
+build/icon.ico
+dist/
+target/
+installer/src-tauri/gen/
+installer/ui/clawd.js
+CLAUDE.md

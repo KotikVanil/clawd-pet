@@ -1,0 +1,15 @@
+[package]
+name = "clawd-hook"
+version = "1.0.0"
+description = "Claude Code PermissionRequest hook that asks the Clawd Pet"
+edition = "2021"
+
+[dependencies]
+serde_json = "1"
+
+[profile.release]
+codegen-units = 1
+lto = true
+opt-level = "s"
+panic = "abort"
+strip = true

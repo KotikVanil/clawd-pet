@@ -1,0 +1,18 @@
+{
+  "name": "clawd-pet",
+  "version": "1.0.0",
+  "description": "Floating Clawd desktop pet that mirrors your Claude Code sessions",
+  "main": "src/main.js",
+  "private": true,
+  "scripts": {
+    "start": "electron .",
+    "demo": "electron . --demo",
+    "probe": "node src/probe.js",
+    "hook:install": "node hook/install.js",
+    "hook:remove": "node hook/install.js --remove"
+  },
+  "devDependencies": {
+    "@electron/packager": "^20.3.0",
+    "electron": "^44.5.1"
+  }
+}

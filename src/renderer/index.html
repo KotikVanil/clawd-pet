@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'">
+  <title>Clawd</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="stage">
+    <div id="bubble" class="hidden">
+      <div class="head">
+        <span class="dot"></span>
+        <span class="status"></span>
+        <span class="time"></span>
+        <button class="close" title="Скрыть">×</button>
+      </div>
+      <div class="thought"></div>
+      <div class="meta"></div>
+      <div class="perm"></div>
+      <div class="body"><div class="text"></div></div>
+      <div class="more">нажми, чтобы развернуть</div>
+      <div class="tail"></div>
+    </div>
+    <canvas id="pet"></canvas>
+  </div>
+  <script src="clawd.js"></script>
+  <script src="markdown.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

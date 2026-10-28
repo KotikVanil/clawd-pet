@@ -1,0 +1,438 @@
+﻿<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Установка Clawd Pet</title>
+<style>
+  :root {
+    --bg: #0b0b0d;
+    --panel: #111114;
+    --raised: #17171b;
+    --line: rgba(255, 255, 255, 0.07);
+    --line-strong: rgba(255, 255, 255, 0.12);
+    --text: #e9e8e4;
+    --muted: #8d8b85;
+    --dim: #5d5b57;
+    --accent: #d97757;
+    --accent-hover: #e2876a;
+    --bad: #e5776b;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font: 13px/1.5 "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
+    overflow: hidden;
+    user-select: none;
+    -webkit-font-smoothing: antialiased;
+  }
+  button { font: inherit; color: inherit; }
+
+  /* ---------- title bar ---------- */
+  .top {
+    height: 38px;
+    display: flex;
+    align-items: center;
+    padding-left: 14px;
+    border-bottom: 1px solid var(--line);
+  }
+  .top .name { color: var(--muted); font-size: 12.5px; display: flex; align-items: center; gap: 8px; pointer-events: none; }
+  .top .name canvas { width: 18px; height: 10px; image-rendering: pixelated; }
+  .top .sp { flex: 1; align-self: stretch; }
+  .wbtn {
+    width: 44px;
+    height: 38px;
+    border: 0;
+    background: transparent;
+    display: grid;
+    place-items: center;
+    color: var(--muted);
+    cursor: default;
+  }
+  .wbtn:hover { background: rgba(255, 255, 255, 0.06); color: var(--text); }
+  .wbtn.x:hover { background: #c4352b; color: #fff; }
+  .wbtn svg { width: 12px; height: 12px; stroke: currentColor; stroke-width: 1.3; fill: none; }
+
+  /* ---------- layout ---------- */
+  .main { display: grid; grid-template-columns: 300px 1fr; height: calc(100% - 38px); }
+  .stage {
+    position: relative;
+    background: var(--panel);
+    border-right: 1px solid var(--line);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  #pet { width: 260px; height: 208px; image-rendering: pixelated; cursor: pointer; margin-top: 18px; }
+  .ground { width: 180px; height: 1px; background: var(--line-strong); margin-top: -10px; }
+  .hint { position: absolute; bottom: 18px; color: var(--dim); font-size: 11.5px; transition: opacity 0.4s; }
+
+  .pane { padding: 30px 32px 22px; display: flex; flex-direction: column; min-width: 0; }
+  .view { display: none; flex: 1; flex-direction: column; min-height: 0; }
+  .view.on { display: flex; animation: in 0.25s ease; }
+  @keyframes in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+  h1 { margin: 0; font-size: 26px; font-weight: 600; letter-spacing: -0.01em; display: flex; align-items: baseline; gap: 10px; }
+  h1 .ver { font-size: 12.5px; font-weight: 400; color: var(--muted); }
+  p { margin: 8px 0 0; color: var(--muted); max-width: 400px; }
+  .note { margin-top: 10px; font-size: 12.5px; color: var(--muted); }
+  .note b { color: var(--text); font-weight: 600; }
+  .note.warn { color: #d9a35a; }
+
+  /* ---------- form ---------- */
+  .group { margin-top: 20px; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+  .row { display: flex; align-items: center; gap: 12px; padding: 9px 12px; min-height: 42px; }
+  .row + .row { border-top: 1px solid var(--line); }
+  .row .lbl { flex: 1; min-width: 0; }
+  .row .sub { display: block; color: var(--muted); font-size: 12px; }
+  .path {
+    flex: 1;
+    min-width: 0;
+    color: var(--muted);
+    font-size: 12.5px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    direction: rtl;
+    text-align: left;
+  }
+  .btn {
+    height: 32px;
+    padding: 0 16px;
+    border-radius: 9px;
+    border: 1px solid var(--line-strong);
+    background: var(--raised);
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+    white-space: nowrap;
+  }
+  .btn:hover { background: #1e1e23; }
+  .btn.small { height: 28px; padding: 0 11px; font-size: 12.5px; }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
+  .btn.primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+  .btn.ghost { background: transparent; border-color: transparent; color: var(--muted); }
+  .btn.ghost:hover { color: var(--text); background: rgba(255, 255, 255, 0.04); }
+  .btn:disabled { opacity: 0.5; pointer-events: none; }
+
+  .sw {
+    position: relative;
+    flex: none;
+    width: 34px;
+    height: 20px;
+    border-radius: 10px;
+    border: 0;
+    background: #2a2a30;
+    cursor: pointer;
+    transition: background 0.18s;
+  }
+  .sw::after {
+    content: "";
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #9b9993;
+    transition: transform 0.18s, background 0.18s;
+  }
+  .sw[aria-checked="true"] { background: var(--accent); }
+  .sw[aria-checked="true"]::after { transform: translateX(14px); background: #fff; }
+
+  .foot { margin-top: auto; padding-top: 18px; display: flex; align-items: center; gap: 8px; }
+  .foot .info { flex: 1; color: var(--dim); font-size: 12px; }
+  .foot .link { cursor: pointer; }
+  .foot .link:hover { color: var(--muted); text-decoration: underline; text-underline-offset: 2px; }
+
+  /* ---------- progress ---------- */
+  .bar { margin-top: 28px; height: 6px; border-radius: 3px; background: #1d1d22; overflow: hidden; }
+  .bar i { display: block; height: 100%; width: 0; background: var(--accent); border-radius: 3px; transition: width 0.25s ease; }
+  .pmeta { display: flex; justify-content: space-between; margin-top: 10px; font-size: 12px; color: var(--muted); gap: 16px; }
+  .pmeta .file { font-family: "Cascadia Code", Consolas, monospace; font-size: 11.5px; color: var(--dim); overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+
+  .tips { margin-top: 22px; display: grid; gap: 8px; }
+  .tip { display: flex; gap: 10px; color: var(--muted); font-size: 12.5px; }
+  .tip kbd {
+    flex: none;
+    min-width: 96px;
+    color: var(--text);
+    font: inherit;
+  }
+  .err { margin-top: 14px; padding: 10px 12px; border: 1px solid rgba(229, 119, 107, 0.35); border-radius: 10px; color: #f0b3aa; font-size: 12.5px; white-space: pre-wrap; user-select: text; }
+</style>
+</head>
+<body>
+  <div class="top" data-tauri-drag-region>
+    <div class="name"><canvas id="logo" width="18" height="10"></canvas><span id="title">Установка Clawd Pet</span></div>
+    <div class="sp" data-tauri-drag-region></div>
+    <button class="wbtn" id="min" title="Свернуть"><svg viewBox="0 0 12 12"><path d="M2 6.5h8"/></svg></button>
+    <button class="wbtn x" id="close" title="Закрыть"><svg viewBox="0 0 12 12"><path d="M2.5 2.5l7 7M9.5 2.5l-7 7"/></svg></button>
+  </div>
+
+  <div class="main">
+    <div class="stage">
+      <canvas id="pet"></canvas>
+      <div class="ground"></div>
+      <div class="hint" id="hint">его можно погладить</div>
+    </div>
+
+    <div class="pane">
+      <!-- welcome -->
+      <section class="view" id="v-welcome">
+        <h1>Clawd Pet <span class="ver" id="ver"></span></h1>
+        <p>Питомец на рабочем столе. Показывает, что делает Claude Code, выводит ответы и запросы разрешений.</p>
+        <div class="note" id="w-installed" hidden></div>
+        <div class="note warn" id="w-noclaude" hidden>Claude Code на этом компьютере не найден. Clawd заработает, когда он появится.</div>
+        <div class="group">
+          <div class="row">
+            <span class="lbl" style="flex:none">Папка</span>
+            <span class="path" id="dir"></span>
+            <button class="btn small" id="pick">Изменить</button>
+          </div>
+        </div>
+        <div class="group">
+          <div class="row"><span class="lbl">Ярлык на рабочем столе</span><button class="sw" id="o-desktop" role="switch"></button></div>
+          <div class="row"><span class="lbl">Ярлык в меню «Пуск»</span><button class="sw" id="o-start" role="switch"></button></div>
+          <div class="row"><span class="lbl">Запускать вместе с Windows</span><button class="sw" id="o-auto" role="switch"></button></div>
+          <div class="row"><span class="lbl">Разрешения через Clawd<span class="sub">Кнопки «Разрешить» и «Отклонить» прямо на пузыре</span></span><button class="sw" id="o-perms" role="switch"></button></div>
+        </div>
+        <div class="foot">
+          <span class="info"><span id="size"></span> · <span class="link" data-url="https://github.com/KotikVanil/clawd-pet">GitHub</span></span>
+          <button class="btn ghost" data-close>Отмена</button>
+          <button class="btn primary" id="go">Установить</button>
+        </div>
+      </section>
+
+      <!-- progress -->
+      <section class="view" id="v-progress">
+        <h1>Установка</h1>
+        <p>Clawd распаковывает свои вещи.</p>
+        <div class="bar"><i id="bar"></i></div>
+        <div class="pmeta"><span class="file" id="file">подготовка</span><span id="pct">0%</span></div>
+      </section>
+
+      <!-- done -->
+      <section class="view" id="v-done">
+        <h1>Готово</h1>
+        <p>Clawd Pet установлен. Он живёт в углу экрана, а его значок в трее открывает настройки.</p>
+        <div class="tips">
+          <div class="tip"><kbd>Наведи курсор</kbd>поздоровается и будет следить глазами</div>
+          <div class="tip"><kbd>Води туда-сюда</kbd>погладишь</div>
+          <div class="tip"><kbd>Левый клик</kbd>последний ответ Claude</div>
+          <div class="tip"><kbd>Правый клик</kbd>открыть этот чат в Claude</div>
+          <div class="tip"><kbd>Перетащи</kbd>куда угодно, место запомнится</div>
+        </div>
+        <div class="foot">
+          <span class="info"></span>
+          <button class="btn ghost" data-close>Закрыть</button>
+          <button class="btn primary" id="run">Запустить</button>
+        </div>
+      </section>
+
+      <!-- error -->
+      <section class="view" id="v-error">
+        <h1>Не получилось</h1>
+        <p>Установка остановилась. Файлы на месте, можно попробовать ещё раз.</p>
+        <div class="err" id="err"></div>
+        <div class="foot">
+          <span class="info"></span>
+          <button class="btn ghost" data-close>Закрыть</button>
+          <button class="btn primary" id="retry">Повторить</button>
+        </div>
+      </section>
+
+      <!-- uninstall -->
+      <section class="view" id="v-uninstall">
+        <h1>Удаление Clawd Pet</h1>
+        <p>Будут удалены программа, ярлыки, автозапуск и хук разрешений в настройках Claude Code. Сам Claude Code не трогаем.</p>
+        <div class="group">
+          <div class="row"><span class="lbl">Удалить и настройки Clawd<span class="sub">Положение на экране, выбранные опции</span></span><button class="sw" id="o-data" role="switch"></button></div>
+        </div>
+        <div class="foot">
+          <span class="info"></span>
+          <button class="btn ghost" data-close>Отмена</button>
+          <button class="btn primary" id="un-go">Удалить</button>
+        </div>
+      </section>
+
+      <!-- uninstalled -->
+      <section class="view" id="v-uninstalled">
+        <h1>Clawd Pet удалён</h1>
+        <p>Clawd собрал вещи. Если захочешь вернуть его, установщик лежит на GitHub.</p>
+        <div class="foot">
+          <span class="info"><span class="link" data-url="https://github.com/KotikVanil/clawd-pet">GitHub</span></span>
+          <button class="btn primary" data-close>Закрыть</button>
+        </div>
+      </section>
+    </div>
+  </div>
+
+<script src="clawd.js"></script>
+<script>
+(async () => {
+  const T = window.__TAURI__;
+  const invoke = (c, a) => T.core.invoke(c, a);
+  const win = T.window.getCurrentWindow();
+  const $ = (s) => document.querySelector(s);
+
+  // ---------- Clawd ----------
+  const canvas = $('#pet');
+  const clawd = new window.Clawd(canvas);
+  const toPet = (e) => {
+    const r = canvas.getBoundingClientRect();
+    return { x: (e.clientX - r.left) * (window.Clawd.WIDTH / r.width), y: (e.clientY - r.top) * (window.Clawd.HEIGHT / r.height) };
+  };
+  const stroke = { lastX: null, dir: 0, travel: 0 };
+  let hover = false;
+  canvas.addEventListener('mousemove', (e) => {
+    const p = toPet(e);
+    const on = clawd.hit(p.x, p.y);
+    if (on && stroke.lastX !== null) {
+      const dx = e.screenX - stroke.lastX;
+      const dir = Math.sign(dx);
+      if (dir && dir === stroke.dir) stroke.travel += Math.abs(dx);
+      else if (dir) { if (stroke.travel >= 10) { clawd.stroke(stroke.dir); hideHint(); } stroke.dir = dir; stroke.travel = Math.abs(dx); }
+    }
+    stroke.lastX = on ? e.screenX : null;
+    if (on !== hover) { hover = on; stroke.dir = 0; }
+    clawd.setHover(on, p.x, p.y);
+  });
+  canvas.addEventListener('mouseleave', () => { hover = false; stroke.lastX = null; clawd.setHover(false); });
+  canvas.addEventListener('click', (e) => { const p = toPet(e); if (clawd.hit(p.x, p.y)) clawd.react(['hop', 'spin', 'love', 'surprise'][Math.floor(Math.random() * 4)]); });
+  const hideHint = () => { $('#hint').style.opacity = 0; };
+
+  // small static Clawd in the title bar
+  (() => {
+    const g = ['...############...', '...##.######.##...', '.################.', '...############...', '....#.#....#.#....'];
+    const c = $('#logo').getContext('2d');
+    g.forEach((row, y) => [...row].forEach((ch, x) => { if (ch === '#') { c.fillStyle = '#d97757'; c.fillRect(x, y * 2, 1, 2); } else if (y === 1 && (x === 5 || x === 12)) { c.fillStyle = '#141413'; c.fillRect(x, 2, 1, 2); } }));
+  })();
+
+  // ---------- views ----------
+  function show(id, mode, detail) {
+    document.querySelectorAll('.view').forEach((v) => v.classList.toggle('on', v.id === 'v-' + id));
+    if (mode) clawd.setMode(mode, detail || '');
+    $('#hint').style.opacity = id === 'welcome' ? 1 : 0;
+  }
+
+  const sw = (id) => ({
+    get: () => $(id).getAttribute('aria-checked') === 'true',
+    set: (v) => $(id).setAttribute('aria-checked', v ? 'true' : 'false'),
+  });
+  document.querySelectorAll('.sw').forEach((b) => b.addEventListener('click', () => {
+    b.setAttribute('aria-checked', b.getAttribute('aria-checked') === 'true' ? 'false' : 'true');
+    clawd.react('boop');
+  }));
+  document.querySelectorAll('[data-close]').forEach((b) => b.addEventListener('click', close));
+  document.querySelectorAll('[data-url]').forEach((b) => b.addEventListener('click', () => invoke('open_url', { url: b.dataset.url })));
+  $('#min').onclick = () => win.minimize();
+  $('#close').onclick = close;
+
+  let mode = 'install';
+  async function close() {
+    if (mode === 'uninstalled') await invoke('schedule_cleanup').catch(() => {});
+    win.close();
+  }
+
+  const mb = (n) => `${Math.max(1, Math.round(n / 1048576))} МБ`;
+  const info = await invoke('info');
+  let dir = info.defaultDir;
+  $('#ver').textContent = info.version;
+  $('#dir').textContent = dir;
+  $('#dir').title = dir;
+  $('#size').textContent = info.hasPayload ? `${mb(info.payloadSize)} для загрузки` : 'нет файлов';
+  sw('#o-desktop').set(info.hasDesktop);
+  sw('#o-start').set(info.hasStart);
+  sw('#o-auto').set(info.autostart);
+  sw('#o-perms').set(info.perms);
+  sw('#o-data').set(false);
+  if (info.installedVersion) {
+    $('#w-installed').hidden = false;
+    $('#w-installed').innerHTML = info.installedVersion === info.version
+      ? `Версия <b>${info.installedVersion}</b> уже установлена, установщик её переустановит.`
+      : `Установлена версия <b>${info.installedVersion}</b>, она будет обновлена до ${info.version}.`;
+    $('#go').textContent = info.installedVersion === info.version ? 'Переустановить' : 'Обновить';
+  }
+  $('#w-noclaude').hidden = info.claudeFound;
+
+  $('#pick').onclick = async () => {
+    const d = await invoke('pick_dir', { start: dir });
+    if (d) { dir = d; $('#dir').textContent = d; $('#dir').title = d; }
+  };
+
+  // ---------- install ----------
+  async function install() {
+    mode = 'install';
+    show('progress', 'working', 'пишу файлы');
+    const ch = new T.core.Channel();
+    ch.onmessage = (p) => {
+      const pct = p.total ? Math.min(100, Math.round((p.done / p.total) * 100)) : 0;
+      $('#bar').style.width = pct + '%';
+      $('#pct').textContent = pct + '%';
+      $('#file').textContent = p.file;
+    };
+    try {
+      await invoke('install', {
+        opts: { dir, desktop: sw('#o-desktop').get(), startMenu: sw('#o-start').get(), autostart: sw('#o-auto').get(), perms: sw('#o-perms').get() },
+        onProgress: ch,
+      });
+      $('#bar').style.width = '100%';
+      show('done', 'done');
+      if (info.update) { await invoke('launch', { dir }).catch(() => {}); setTimeout(() => win.close(), 1200); }
+    } catch (e) {
+      $('#err').textContent = String(e);
+      show('error', 'error');
+    }
+  }
+  $('#go').onclick = install;
+  $('#retry').onclick = () => (mode === 'uninstall' ? uninstall() : install());
+  $('#run').onclick = async () => { await invoke('launch', { dir }).catch(() => {}); win.close(); };
+
+  // ---------- uninstall ----------
+  async function uninstall() {
+    mode = 'uninstall';
+    $('#un-go').disabled = true;
+    try {
+      await invoke('uninstall', { opts: { removeData: sw('#o-data').get() } });
+      mode = 'uninstalled';
+      show('uninstalled', 'error');
+      setTimeout(() => clawd.react('wave'), 1900);
+    } catch (e) {
+      $('#err').textContent = String(e);
+      show('error', 'error');
+    } finally {
+      $('#un-go').disabled = false;
+    }
+  }
+  $('#un-go').onclick = uninstall;
+
+  // ---------- start ----------
+  const view = info.view;
+  if (view) {
+    // dev screenshots: CP_SETUP_VIEW=welcome|progress|done|error|uninstall|uninstalled
+    const modes = { welcome: 'idle', progress: 'working', done: 'done', error: 'error', uninstall: 'idle', uninstalled: 'error' };
+    if (view === 'progress') { $('#bar').style.width = '64%'; $('#pct').textContent = '64%'; $('#file').textContent = 'resources\\app.asar'; }
+    if (view === 'error') $('#err').textContent = 'Clawd Pet всё ещё запущен. Закройте его через значок в трее и нажмите «Повторить».';
+    if (view === 'uninstall' || view === 'uninstalled') $('#title').textContent = 'Удаление Clawd Pet';
+    show(view, modes[view] || 'idle');
+  } else if (info.uninstall) {
+    $('#title').textContent = 'Удаление Clawd Pet';
+    show('uninstall', 'idle');
+    setTimeout(() => clawd.react('surprise'), 300);
+  } else if (!info.hasPayload) {
+    $('#err').textContent = 'В установщике нет файлов программы. Скачайте ClawdPet-Setup.exe заново.';
+    $('#retry').hidden = true;
+    show('error', 'error');
+  } else if (info.update) {
+    install();
+  } else {
+    show('welcome', 'idle');
+    setTimeout(() => clawd.react('wave'), 400);
+  }
+})();
+</script>
+</body>
+</html>
